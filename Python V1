@@ -1,0 +1,31 @@
+import cv2
+import mediapipe as mp
+
+mp_pose = mp.solutions.pose
+mp_draw = mp.solutions.drawing_utils  # built-in drawing helper
+
+pose = mp_pose.Pose()
+cap = cv2.VideoCapture(0)  # 0 = webcam, or pass a file path
+
+while True:
+    ret, frame = cap.read()
+    rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)  # MediaPipe needs RGB
+
+    results = pose.process(rgb)  # run the model
+
+    if results.pose_landmarks:
+        # Draw all landmarks automatically
+        mp_draw.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
+
+        # Or grab a specific point manually
+        nose = results.pose_landmarks.landmark[0]
+        h, w, _ = frame.shape
+        x, y = int(nose.x * w), int(nose.y * h)  # convert to pixel coords
+        cv2.circle(frame, (x, y), 10, (0, 255, 0), -1)
+
+    cv2.imshow("Tracking", frame)
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+        break
+
+cap.release()
+cv2.destroyAllWindows()
